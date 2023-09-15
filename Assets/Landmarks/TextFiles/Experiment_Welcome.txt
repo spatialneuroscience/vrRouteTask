@@ -1,0 +1,8 @@
+
+Welcome!
+
+This is the simplified version of the Route Learning task. 
+The goal of this task is to let you practice moving around in the environment using the mouse and the keyboard.
+Please let the experimenter know if you have any questions.
+
+Press "Continue".
