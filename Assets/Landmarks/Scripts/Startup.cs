@@ -1,4 +1,18 @@
-/*    Copyright (C) 2010  Jason Laczko    This program is free software: you can redistribute it and/or modify    it under the terms of the GNU General Public License as published by    the Free Software Foundation, either version 3 of the License.    This program is distributed in the hope that it will be useful,    but WITHOUT ANY WARRANTY; without even the implied warranty of    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the    GNU General Public License for more details.    You should have received a copy of the GNU General Public License    along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
+/*
+    Copyright (C) 2010  Jason Laczko
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 
 
@@ -28,10 +42,18 @@
 
 
 
-using UnityEngine;using System.Collections;using System;using System.IO;public class Startup : MonoBehaviour
+using UnityEngine;
+using System.Collections;
+using System;
+using System.IO;
+
+public class Startup : MonoBehaviour
 {
 
-    public GUISkin thisMetalGUISkin;    public Texture logo;    public Texture pulldown;    public string[] levels;
+    public GUISkin thisMetalGUISkin;
+    public Texture logo;
+    public Texture pulldown;
+    public string[] levels;
 
     private Config config;
 
@@ -95,7 +117,8 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
 
     //private Texture blackTex;
 
-    void readyConfig()    {
+    void readyConfig()
+    {
         config.width = resolutions[listEntry].width;
         config.height = resolutions[listEntry].height;
         config.nofullscreen = fsToggleState;
@@ -104,9 +127,10 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
         config.subjectPath = appDir + "/data/" + levelList[currentLevelSelection].text + "/" + subject;
 
         config.appPath = appDir;
-        config.level = levelList[currentLevelSelection].text;
+        // config.level = levelList[currentLevelSelection].text;
         config.subject = subject;
-        config.filename = configfile;    }
+        config.filename = configfile;
+    }
 
     void initSubjects()
     {
@@ -131,7 +155,9 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
             subjectslist = new GUIContent[0];
         }
         currentSubjectSelection = 0;
-        initSessions();    }
+        initSessions();
+
+    }
 
     void initSessions()
     {
@@ -168,7 +194,8 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
                 sesslist[0] = new GUIContent("Select Session");
             }
         }
-        sessEntry = 0;    }
+        sessEntry = 0;
+    }
 
     void setupDirectories()
     {
@@ -203,7 +230,9 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
             }
         }
         catch (Exception e)
-        {            errorText = "The process failed: " + e.ToString();        }
+        {
+            errorText = "The process failed: " + e.ToString();
+        }
     }
 
     // Use this for initialization
@@ -237,9 +266,11 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
         int i = 0;
         levelList = new GUIContent[levels.Length];
 
-        foreach (string item in levels)        {
+        foreach (string item in levels)
+        {
             levelList[i] = new GUIContent(item);
-            i = i + 1;        }
+            i = i + 1;
+        }
 
 
 
@@ -290,7 +321,8 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
         listSelectedStyle.padding.left = listSelectedStyle.padding.right = listSelectedStyle.padding.top = listSelectedStyle.padding.bottom = 4;
 
 
-        errorStyle = new GUIStyle();        errorStyle.normal.textColor = new Color(0.7F, 0.1F, 0.1F);
+        errorStyle = new GUIStyle();
+        errorStyle.normal.textColor = new Color(0.7F, 0.1F, 0.1F);
         initSubjects();
         //initSessions();
 
@@ -334,10 +366,12 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
 
     //// GUI GUI
 
-    void OnGUI()    {
+    void OnGUI()
+    {
 
         //boxStyle = ;
-        GUI.skin.label.normal.textColor = Color.black;        GUI.skin.toggle.normal.textColor = Color.black;
+        GUI.skin.label.normal.textColor = Color.black;
+        GUI.skin.toggle.normal.textColor = Color.black;
 
         // LOGO
         GUI.BeginGroup(new Rect(0, 0, 1024, 200));
@@ -382,7 +416,22 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
 
 
 
-        /*      			        GUILayout.BeginVertical();		        GUILayout.TextField("Im a textfield");		          		        blnToggleState = GUILayout.Toggle(blnToggleState, "Im a Toggle button");		        GUILayout.EndVertical();		        GUILayout.BeginVertical();		                //   fltScrollerValue = GUILayout.VerticalScrollbar(fltScrollerValue, 0.1f, 0.0f, 1.1f, GUILayout.Height(290));             GUILayout.EndVertical();          GUILayout.EndHorizontal();          */
+        /*
+		        GUILayout.BeginVertical();
+
+		        GUILayout.TextField("Im a textfield");
+
+		        blnToggleState = GUILayout.Toggle(blnToggleState, "Im a Toggle button");
+		        GUILayout.EndVertical();
+		        GUILayout.BeginVertical();
+
+
+
+   //   fltScrollerValue = GUILayout.VerticalScrollbar(fltScrollerValue, 0.1f, 0.0f, 1.1f, GUILayout.Height(290));
+
+        GUILayout.EndVertical();
+          GUILayout.EndHorizontal();
+          */
 
 
 
@@ -442,7 +491,7 @@ using UnityEngine;using System.Collections;using System;using System.IO;pub
             if (subjectslist.Length > 0)
             {
                 config.runMode = ConfigRunMode.RESUME;
-                //run();        	
+                //run();
 
             }
             else
@@ -504,7 +553,8 @@ popupStyle))
                 subject = subjectslist[currentSubjectSelection].text;
 
 
-                ///Debug.Log(sub);                                    run();
+                ///Debug.Log(sub);
+                                    run();
             }
             else
             {
@@ -524,8 +574,9 @@ popupStyle))
 
 
 
-        ///////////////////	       
-        /// top section            ///////////////////    
+        ///////////////////
+        /// top section
+            ///////////////////
 
         GUI.BeginGroup(new Rect(20, 20, 900, 600));
         GUILayout.BeginVertical();
@@ -533,7 +584,7 @@ popupStyle))
         fsToggleState = GUI.Toggle(new Rect(260, 0, 100, 20), fsToggleState, "No Full Screen");
         noEEGToggleState = GUI.Toggle(new Rect(380, 0, 100, 20), noEEGToggleState, "No EEG");
         showFPSToggleState = GUI.Toggle(new Rect(490, 0, 100, 20), showFPSToggleState, "Show FPS");
-        //enableSkipStateToggleState = GUI.Toggle(new Rect (580, 0, 100, 20),showFPSToggleState, "Enable Skip Task Key");		        	
+        //enableSkipStateToggleState = GUI.Toggle(new Rect (580, 0, 100, 20),showFPSToggleState, "Enable Skip Task Key");
         GUILayout.EndHorizontal();
 
 
@@ -575,4 +626,6 @@ popupStyle))
         GUI.Label(new Rect(Screen.width / 2 + 330, 705, 300, 30), "Version: " + config.version);
 
 
-    }}
+    }
+
+}

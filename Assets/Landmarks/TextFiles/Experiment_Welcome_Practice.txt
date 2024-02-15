@@ -1,0 +1,8 @@
+Welcome!
+
+The name of this task is "VR Route Learning".
+
+The goal of this task is to learn the virtual maze and find the exit point.
+Please let the experimenter know if you have any questions.
+
+Press "Continue".

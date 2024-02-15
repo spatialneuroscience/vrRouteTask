@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 public class LM_ExperimentManager : MonoBehaviour
 {
-    
+
     public Toggle practice;
     public TMP_Dropdown ui;
     public TMP_InputField subID;
@@ -163,7 +163,7 @@ public class LM_ExperimentManager : MonoBehaviour
 
             readyConfig();
             ReadyExp();
-            SceneManager.LoadScene(config.level);
+            SceneManager.LoadScene(config.levelNumber);
         }
         else
         {
@@ -177,7 +177,7 @@ public class LM_ExperimentManager : MonoBehaviour
     {
         config.levelNames = new List<string>();
         config.levelNames.Add(environment.options[environment.value].text);
-        config.level = environment.options[environment.value].text;
+        // config.level = environment.options[environment.value].text;
 
         config.conditions = new List<string>();
         config.conditions.Add(condition.options[condition.value].text);

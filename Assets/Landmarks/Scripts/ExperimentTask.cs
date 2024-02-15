@@ -33,14 +33,14 @@ public class ExperimentTask : MonoBehaviour{
 
     protected GameObject scaledAvatar; // MJS 2019 - track scaled avatar in scaled nav task
     protected avatarLog scaledAvatarLog; // MJS 2019 - track scaled avatar in scaled nav task
-    
+
 	protected long task_start;
 
     protected SteamVR_Input_ActionSet_landmarks vrInput;
 
     protected ArrayList trialHeader;
     protected ArrayList trialData;
-	
+
 	public bool skip = false;
 	public bool canIncrementLists = true;
 
@@ -72,16 +72,16 @@ public class ExperimentTask : MonoBehaviour{
     private BrainAmpManager eegManager;
 
 
-    public void Awake () 
+    public void Awake ()
 	{
         eegManager = FindObjectOfType<BrainAmpManager>();
 	}
 
-	public void Start () 
+	public void Start ()
     {
 
 	}
-	
+
 	public virtual void startTask() {
 		avatar = GameObject.FindWithTag ("Player");
 		avatarLog = avatar.GetComponentInChildren<avatarLog>() as avatarLog; //jdstokes 2015
@@ -94,7 +94,7 @@ public class ExperimentTask : MonoBehaviour{
         vrEnabled = manager.usingVR;
         trialLog = manager.trialLogger;
 
-		
+
 
         // set up vrInput if we're using VR
         if (vrEnabled) vrInput = SteamVR_Input.GetActionSet<SteamVR_Input_ActionSet_landmarks>(default);
@@ -117,7 +117,7 @@ public class ExperimentTask : MonoBehaviour{
 		ResetHud();
 		hud.ForceShowMessage ();
 		//currentInterrupt = 0;        Not here since after an interuupt we will restart
-		
+
 		log.log("TASK_START\t" + name + "\t" + this.GetType().Name,1 );
 
         if (eegManager != null & triggerOnStart)
@@ -132,33 +132,35 @@ public class ExperimentTask : MonoBehaviour{
             eegManager.EEGTrigger(startLabel);
             log.log("EEG_TRIGGER\tName\t" + startLabel + "\tValue\t" + eegManager.triggers[startLabel].ToString(), 1);
         }
+
+        Debug.Log("Starting " + this.name);
     }
-	
+
 	public virtual void TASK_START () {
-	}	
-	
+	}
+
 	public virtual bool updateTask () {
 
 		bool attemptInterupt = false;
-		
+
 		if ( interruptInterval > 0 && Experiment.Now() - task_start >= interruptInterval)  {
 	        attemptInterupt = true;
 	    }
-	    
+
 		if( Input.GetButtonDown ("Compass") ) {
-			attemptInterupt = true;	
-		}    
-	    
-		if(attemptInterupt && interruptTasks && currentInterrupt < repeatInterrupts && !interruptTasks.skip) 
-		{	
+			attemptInterupt = true;
+		}
+
+		if(attemptInterupt && interruptTasks && currentInterrupt < repeatInterrupts && !interruptTasks.skip)
+		{
 			if (interruptTasks.skip) {
 				log.log("INFO	skip interrupt	" + interruptTasks.name,1 );
-			} 
-			else 
+			}
+			else
 			{
 				Debug.Log(currentInterrupt);
 	    		Debug.Log(repeatInterrupts);
-	    
+
 				log.log("INPUT_EVENT	interrupt	" + name,1 );
 				//interruptTasks.pausedTasks = this;
 				parentTask.pausedTasks = this;
@@ -167,12 +169,12 @@ public class ExperimentTask : MonoBehaviour{
 				currentInterrupt = currentInterrupt + 1;
 				interruptTasks.startTask();
 				parentTask.currentTask = interruptTasks;
-	
+
 			}
 		}
 
 
-		
+
 		return false;
 	}
 
@@ -197,6 +199,7 @@ public class ExperimentTask : MonoBehaviour{
 		currentInterrupt = 0;    //put here because of interrupts
 		log.log("TASK_END\t" + name + "\t" + this.GetType().Name + "\t" + duration,1 );
         hud.showNothing();
+
 	}
 
 
@@ -241,7 +244,7 @@ public class ExperimentTask : MonoBehaviour{
 
 	}
 
-	
+
 	public virtual string currentString()
     {
 		return "";
@@ -273,7 +276,7 @@ public class ExperimentTask : MonoBehaviour{
 	}
 
 
-    public bool KillCurrent () 
+    public bool KillCurrent ()
 	{
 		killCurrent = false;
 		Debug.Log ("ForceKilling " + this.name);

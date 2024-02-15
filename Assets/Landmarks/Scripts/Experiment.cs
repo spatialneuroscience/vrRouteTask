@@ -179,7 +179,8 @@ public class Experiment : MonoBehaviour {
         // --------------------------------------
 
         //when in editor
-        if (Application.isEditor)
+        // if (Application.isEditor)
+        if (false)
         {
             // If we are using azure in the editor, save to persistentdatapath for file permission
             if (azureStorage != null)
@@ -213,7 +214,7 @@ public class Experiment : MonoBehaviour {
                 logfile =
                     "test.log";
             }
-            
+
         }
         // Otherwise, save data in the persistent data path for file permission (regardless of Azure)
         else
@@ -291,7 +292,7 @@ public class Experiment : MonoBehaviour {
             scaledEnvironment = null;
         }
 
-        
+
     }
 
 
@@ -609,14 +610,14 @@ public class Experiment : MonoBehaviour {
         try
         {
             // Read in the log file and prepare to parse it with RegEx
-            var sr = new StreamReader(dataPath + logfile); 
-            var loggedData = await sr.ReadToEndAsync(); 
+            var sr = new StreamReader(dataPath + logfile);
+            var loggedData = await sr.ReadToEndAsync();
             sr.Close();
 
             // Find LM logging headers and identify unique tasks in this experiment
-            Regex pattern = new Regex("LandmarksTrialData:\n.*\n(.*\t)\n"); 
-            MatchCollection matches = pattern.Matches(loggedData); 
-            List<string> tasks = new List<string>(); 
+            Regex pattern = new Regex("LandmarksTrialData:\n.*\n(.*\t)\n");
+            MatchCollection matches = pattern.Matches(loggedData);
+            List<string> tasks = new List<string>();
             foreach (Match match in matches)
             {
                 GroupCollection groups = match.Groups;
@@ -645,7 +646,7 @@ public class Experiment : MonoBehaviour {
                     filename = nameGroups[1].Value;
                 }
                 //filename = "task_" + taskCount;
-                
+
 
                 // Don't overwrite data unless in Editor
                 if (File.Exists(dataPath + filename + ".csv") & !Application.isEditor)

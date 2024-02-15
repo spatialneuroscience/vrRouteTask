@@ -5,11 +5,11 @@ using UnityEngine.UI;
 public class WrongWay : MonoBehaviour
 {
     public GameObject UIObject;
-    
+    public dbLog log;
+
     // Start is called before the first frame update
     void Start()
     {
-        
     }
     void OnTriggerEnter(Collider other){
         if(other.tag == "Player"){
@@ -41,11 +41,11 @@ public class WrongWay : MonoBehaviour
         }
 
     }
-    
+
     // Update is called once per frame
     void Update()
     {
-        
+
     }
-    
+
 }
