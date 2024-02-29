@@ -15,6 +15,11 @@ public class RecordWrongWay : MonoBehaviour
         log = GameObject.FindWithTag("Experiment").GetComponent<Experiment>().dblog;
     }
 
+    public void SetWrongDirection(bool wrong)
+    {
+        isWrongDirection = wrong;
+    }
+
     // Update is called once per frame
 
     private void OnTriggerEnter(Collider other)
