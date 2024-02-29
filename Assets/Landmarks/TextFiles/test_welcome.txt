@@ -1,0 +1,4 @@
+TESTING
+This is the testing phase of the experiment. You will need to find the same exit based on what you previously learned about the maze.
+
+Press the blue "Continue" button with the trackpad to proceed.

@@ -6405,6 +6405,11 @@ PrefabInstance:
       propertyPath: userInterface
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5308465572058041532, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: message
+      value: 
+      objectReference: {fileID: 4900000, guid: dc32569fade2410439d67a5aac84e850, type: 3}
     - target: {fileID: 5308465572180033508, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: m_TagString
@@ -90222,7 +90227,7 @@ MonoBehaviour:
   triggerOnStart: 0
   triggerOnEnd: 0
   instruction: {fileID: 0}
-  message: {fileID: 4900000, guid: be09658d905b44554a5d01366bd52d7e, type: 3}
+  message: {fileID: 4900000, guid: 53ab3a09d35669843b21477d96c1db86, type: 3}
   objects: {fileID: 0}
   multiObjects: []
   texts: {fileID: 0}

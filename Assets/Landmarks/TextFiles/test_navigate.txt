@@ -1,0 +1,10 @@
+NAVIGATION
+You will now begin the testing phase. You need to find the exit of the maze.
+Red arrows will appear on the ground if you walk into a wrong path.
+
+
+
+
+Press the blue "Continue" button with the trackpad to begin. Then, look around
+and walk to a set of footprints. 
+

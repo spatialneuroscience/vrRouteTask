@@ -6,8 +6,20 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/LM_Startup.unity
+    guid: 3da219950bf8bc54eb18aafc19007591
+  - enabled: 1
     path: Assets/main - test - desktop.unity
     guid: 700f8f818d4d4db4a8b5c3f0a54e4cfa
+  - enabled: 1
+    path: Assets/main - test - VR.unity
+    guid: ca1c9ddddeced2542a9be2eb9100bdc5
+  - enabled: 1
+    path: Assets/main - train - desktop.unity
+    guid: c7349691d62a79a4bb57a8c358780520
+  - enabled: 1
+    path: Assets/main - train - VR.unity
+    guid: 81efdd60ba315e04cba75d2a6cc95883
   m_configObjects:
     Unity.XR.OpenVR.Settings: {fileID: 11400000, guid: 1de6e19b8b3f0dd47bd1227dbbbe2a39,
       type: 2}

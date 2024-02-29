@@ -30,6 +30,7 @@ public class LM_GoTo : ExperimentTask
     private Vector2 originalRectTransformSize;
     public ObjectList subset;
     private bool originalSkip;
+    public bool ended;
 
     private new void Awake()
     {
@@ -64,7 +65,7 @@ public class LM_GoTo : ExperimentTask
             effect = arriveAt.GetComponentInChildren<ParticleSystem>();
         arriveAt.SetActive(true); // show the destination if it's hidden
         if (effect != null) effect.Play(true); // start particles if we have them
-        // hud.ReCenter(arriveAt.transform); // move the HUD to the start location
+        hud.ReCenter(arriveAt.transform); // move the HUD to the start location
         hud.SecondsToShow = 0; // don't show it unless they are at the start location
         hud.hudPanel.SetActive(false);
 
@@ -134,8 +135,8 @@ public class LM_GoTo : ExperimentTask
             }
             else
             {
-                hud.setMessage("");
-                hud.hudPanel.SetActive(false);
+                //hud.setMessage("");
+                //hud.hudPanel.SetActive(false);
             }
 
             return false;
@@ -171,6 +172,7 @@ public class LM_GoTo : ExperimentTask
         atDestination = false;
 
         skip = originalSkip;
+        manager.goToEnded = true;
     }
 
     private void OnTriggerEnter(Collider collision)
@@ -179,7 +181,7 @@ public class LM_GoTo : ExperimentTask
             GameObject.FindWithTag("Player").GetComponentInChildren<LM_PlayerController>().collisionObject.gameObject
                 .name)
         {
-            //Debug.Log(collision.name + "is here");
+            Debug.Log(collision.name + "is here");
             if (effect != null) effect.Stop(true, ParticleSystemStopBehavior.StopEmitting);
             atDestination = true;
 

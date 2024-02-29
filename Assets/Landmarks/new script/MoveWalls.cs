@@ -16,6 +16,11 @@ public class MoveWalls : MonoBehaviour
     }
     void OnTriggerEnter(Collider other)
     {
+        var exp = GameObject.FindObjectOfType<Experiment>();
+        if (exp != null && !exp.goToEnded)
+        {
+            return;
+        }
         if (other.tag == "Player")
         {
             Debug.Log("tRIGGERING THE SWITCH!");
@@ -30,6 +35,11 @@ public class MoveWalls : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        var exp = GameObject.FindObjectOfType<Experiment>();
+        if (exp != null && !exp.goToEnded)
+        {
+            return;
+        }
         if (collision.gameObject.tag == "Player")
         {
             Debug.Log("tRIGGERING THE SWITCH!");

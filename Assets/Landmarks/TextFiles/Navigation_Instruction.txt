@@ -1,7 +1,5 @@
 
 NAVIGATION
 Start the task and follow the red arrows in the environment.
-You will need to hit the first arrow for the next arrow to appear.
-You will start the main task after finishing this task.
 
 Press "Continue" to start the task.

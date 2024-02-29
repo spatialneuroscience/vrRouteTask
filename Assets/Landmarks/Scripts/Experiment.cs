@@ -94,6 +94,7 @@ public class Experiment : MonoBehaviour {
 	protected AvatarController avatarController;
 	protected HUD hud;
 
+    public bool goToEnded;
 
     // -------------------------------------------------------------------------
     // -------------------------- Builtin Methods ------------------------------

@@ -1,0 +1,9 @@
+
+Welcome!
+
+The name of this task is "VR Route Testing".
+
+The goal of this task is to learn the configuration of the maze and find the exit.
+Please let the experimenter know if you have any questions.
+
+Press the blue "Continue" button with the trackpad to proceed.

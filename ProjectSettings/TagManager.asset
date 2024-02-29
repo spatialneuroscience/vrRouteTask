@@ -42,6 +42,8 @@ TagManager:
   - wall28
   - wall29
   - wall26
+  - StartPole
+  - GoTo
   layers:
   - Default
   - TransparentFX
