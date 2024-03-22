@@ -10,8 +10,17 @@ public class WrongWay : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (!UIObject)
+        {
+            Debug.LogWarning($"UIObject not set in {gameObject.name}");
+        }
     }
     void OnTriggerEnter(Collider other){
+        if (UIObject == null)
+        {
+            return;
+        }
+
         if(other.tag == "Player"){
             if (UIObject.activeSelf == true)
             {
