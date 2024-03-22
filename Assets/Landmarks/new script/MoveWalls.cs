@@ -10,9 +10,13 @@ public class MoveWalls : MonoBehaviour
     public Vector3 replacementTransform; //how much to move the replacementWalls
     public float waitTime; //when replacing the objects that move the walls, a short wait time is used so the walls don't get switched multiple times per walk through
     // Start is called before the first frame update
+    private Quaternion _quaternion;
     void Start()
     {
-
+        _quaternion = GameObject.FindGameObjectWithTag("maze").transform.rotation;
+        //Debug.Log("rotation: " + rotation);
+        //_quaternion = Quaternion.Euler(rotation.x, rotation.y, rotation.z);
+        // _quaternion = 
     }
     void OnTriggerEnter(Collider other)
     {
@@ -50,14 +54,15 @@ public class MoveWalls : MonoBehaviour
 
     IEnumerator moveWalls()
     {
+
         if (localWalls)
         {
-            localWalls.transform.position = localWalls.transform.position + localTransform;
+            localWalls.transform.position = localWalls.transform.position + _quaternion * localTransform;
         }
         yield return new WaitForSeconds(waitTime);
         if (replacementWalls)
         {
-            replacementWalls.transform.position = replacementWalls.transform.position + replacementTransform;
+            replacementWalls.transform.position = replacementWalls.transform.position + _quaternion * replacementTransform;
         }
 
     }

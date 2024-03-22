@@ -30,8 +30,8 @@ public class WrongWay : MonoBehaviour
             else
             {
                 UIObject.SetActive(true);
-
             }
+            
 
 
         }

@@ -85,7 +85,12 @@ public class ExperimentTask : MonoBehaviour{
 	public virtual void startTask() {
 		avatar = GameObject.FindWithTag ("Player");
 		avatarLog = avatar.GetComponentInChildren<avatarLog>() as avatarLog; //jdstokes 2015
-		hud = avatar.GetComponent("HUD") as HUD;
+		if (!avatarLog) Debug.LogError("No Avatar Log found");
+		hud = avatar.GetComponent<HUD>();
+		if (!hud)
+		{
+			Debug.LogError("No Hud found");
+		}
 		experiment = GameObject.FindWithTag ("Experiment");
 		manager = experiment.GetComponent("Experiment") as Experiment;
 		firstPersonCamera = manager.playerCamera;
