@@ -1,4 +1,4 @@
-TESTING
-This is the testing phase of the experiment. You will need to find the same exit based on what you previously learned about the maze.
-
-Press the blue "Continue" button with the trackpad to proceed.
+Now, you will be asked to find the exit in the maze by repeating the route you just learned in the training phase from memory.
+If you make a wrong turn, red arrows will appear on the floor that will guide you back on track.
+Please let the experimenter know if you have any questions.
+To begin, press the blue "Continue" button with the trackpad, and walk towards a set of footprints on the floor.
