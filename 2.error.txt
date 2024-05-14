@@ -1,6 +1,0 @@
-Errors: 2
-cube(3):Time:23.5
-cube(6):Time:573.18
-cube(25):Time:573.32
-cubeb:Time:585.08
-cube(24):Time:585.36

@@ -1,3 +1,0 @@
-Errors: 1
-cube(3):Time:16.24
-cube(20):Time:92.18
