@@ -11,17 +11,21 @@ public class MoveWalls : MonoBehaviour
     public float waitTime; //when replacing the objects that move the walls, a short wait time is used so the walls don't get switched multiple times per walk through
     // Start is called before the first frame update
     private Quaternion _quaternion;
+    private float scaleFactor = 1f;
     void Start()
     {
         _quaternion = GameObject.FindGameObjectWithTag("maze").transform.rotation;
         //Debug.Log("rotation: " + rotation);
         //_quaternion = Quaternion.Euler(rotation.x, rotation.y, rotation.z);
         // _quaternion = 
+        // Auto-calculate scale relative to base size of 7
+        Vector3 mazeScale = GameObject.FindGameObjectWithTag("maze").transform.localScale;
+        scaleFactor = mazeScale.x; // assumes uniform XZ scale
     }
     void OnTriggerEnter(Collider other)
     {
         var exp = GameObject.FindObjectOfType<Experiment>();
-        if (exp != null && !exp.goToEnded)
+        if (exp != null && exp.goToEnded)
         {
             return;
         }
@@ -57,12 +61,12 @@ public class MoveWalls : MonoBehaviour
 
         if (localWalls)
         {
-            localWalls.transform.position = localWalls.transform.position + _quaternion * localTransform;
+            localWalls.transform.position = localWalls.transform.position + _quaternion * localTransform * scaleFactor;
         }
         yield return new WaitForSeconds(waitTime);
         if (replacementWalls)
         {
-            replacementWalls.transform.position = replacementWalls.transform.position + _quaternion * replacementTransform;
+            replacementWalls.transform.position = replacementWalls.transform.position + _quaternion * replacementTransform * scaleFactor;
         }
 
     }
