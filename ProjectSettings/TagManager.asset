@@ -47,6 +47,7 @@ TagManager:
   - Error
   - maze
   - mover
+  - floor
   layers:
   - Default
   - TransparentFX

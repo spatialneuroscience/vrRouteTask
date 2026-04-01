@@ -21,41 +21,40 @@ public class MoveWalls : MonoBehaviour
         // Auto-calculate scale relative to base size of 7
         Vector3 mazeScale = GameObject.FindGameObjectWithTag("maze").transform.localScale;
         scaleFactor = mazeScale.x; // assumes uniform XZ scale
+        Debug.Log("Calculated scaleFactor: " + scaleFactor);
+        Debug.Log("floor size: " + GameObject.FindGameObjectWithTag("floor").GetComponent<Renderer>().bounds.size);
     }
     void OnTriggerEnter(Collider other)
     {
-        var exp = GameObject.FindObjectOfType<Experiment>();
-        if (exp != null && exp.goToEnded)
-        {
-            return;
-        }
-        if (other.tag == "Player")
-        {
-            Debug.Log("tRIGGERING THE SWITCH!");
-            StartCoroutine(moveWalls());
-        }
-        if (other == GameObject.FindGameObjectWithTag("Player").GetComponent<LM_PlayerController>().collisionObject)
-        {
-            Debug.Log("tRIGGERING THE SWITCH!");
-            StartCoroutine(moveWalls());
-        }
-    }
+        Debug.Log("OnTriggerEnter fired by: " + other.gameObject.name + " | tag: " + other.tag);
 
-    private void OnCollisionEnter(Collision collision)
-    {
         var exp = GameObject.FindObjectOfType<Experiment>();
+        Debug.Log("Experiment found: " + (exp != null) + (exp != null ? " | goToEnded: " + exp.goToEnded : ""));
         if (exp != null && !exp.goToEnded)
         {
+            Debug.Log("STOPPED: experiment has ended");
             return;
         }
-        if (collision.gameObject.tag == "Player")
+
+        var playerController = GameObject.FindGameObjectWithTag("Player")
+                                ?.GetComponent<LM_PlayerController>();
+
+        bool isPlayer = other.CompareTag("Player");
+        bool isCollisionObj = playerController != null
+                            && other == playerController.collisionObject;
+
+        Debug.Log("isPlayer: " + isPlayer + " | isCollisionObj: " + isCollisionObj + " | playerController found: " + (playerController != null));
+
+        if (isPlayer || isCollisionObj)
         {
-            Debug.Log("tRIGGERING THE SWITCH!");
+            Debug.Log("TRIGGERING wall move!");
             StartCoroutine(moveWalls());
         }
-        
+        else
+        {
+            Debug.Log("STOPPED: neither isPlayer nor isCollisionObj was true");
+        }
     }
-
     IEnumerator moveWalls()
     {
 
