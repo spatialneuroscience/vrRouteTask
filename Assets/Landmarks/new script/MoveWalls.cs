@@ -9,6 +9,7 @@ public class MoveWalls : MonoBehaviour
     public Vector3 localTransform; //how much to move the localWalls
     public Vector3 replacementTransform; //how much to move the replacementWalls
     public float waitTime; //when replacing the objects that move the walls, a short wait time is used so the walls don't get switched multiple times per walk through
+    public float scalar = 7.4f/7f;
     // Start is called before the first frame update
     private Quaternion _quaternion;
     void Start()
@@ -57,12 +58,12 @@ public class MoveWalls : MonoBehaviour
 
         if (localWalls)
         {
-            localWalls.transform.position = localWalls.transform.position + _quaternion * localTransform;
+            localWalls.transform.position = localWalls.transform.position + _quaternion * localTransform * scalar;
         }
         yield return new WaitForSeconds(waitTime);
         if (replacementWalls)
         {
-            replacementWalls.transform.position = replacementWalls.transform.position + _quaternion * replacementTransform;
+            replacementWalls.transform.position = replacementWalls.transform.position + _quaternion * replacementTransform * scalar;
         }
 
     }

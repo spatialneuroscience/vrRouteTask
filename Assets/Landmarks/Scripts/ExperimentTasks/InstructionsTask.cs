@@ -22,9 +22,6 @@ using TMPro;
 
 public class InstructionsTask : ExperimentTask {
 
-
-    
-
     public static int instructionsCounter;
 
     [Header("Task-specific Properties")]
@@ -36,6 +33,13 @@ public class InstructionsTask : ExperimentTask {
     public ObjectList[] multiObjects; // if you want the same subset from several lists
     private GameObject currentObject;
     private string[] currentMultiObjects;
+
+    // --- NEW FIELDS TO DISABLE AN OBJECT DURING TRIAL ---
+    [Tooltip("The GameObject to disable while this instruction trial is running.")]
+    public GameObject objectToDisable;
+    [Tooltip("Check this if you want the object to automatically re-enable when the trial ends.")]
+    public bool reEnableOnEnd = true;
+    // ----------------------------------------------------
 
     public TextList texts;
     private string currentText;
@@ -74,6 +78,14 @@ public class InstructionsTask : ExperimentTask {
             log.log("INFO    skip task    " + name,1 );
             return;
         }
+
+        // --- DISABLE OBJECT IF SPECIFIED ---
+        if (objectToDisable != null)
+        {
+            objectToDisable.SetActive(false);
+            Debug.Log($"Disabled object '{objectToDisable.name}' for trial active duration.");
+        }
+        // -----------------------------------
 
         GameObject sgo = new GameObject("Instruction Display");
 
@@ -213,6 +225,14 @@ public class InstructionsTask : ExperimentTask {
     public override void TASK_END() {
         base.endTask ();
 
+        // --- RE-ENABLE OBJECT IF SPECIFIED ---
+        if (objectToDisable != null && reEnableOnEnd)
+        {
+            objectToDisable.SetActive(true);
+            Debug.Log($"Re-enabled object '{objectToDisable.name}' on trial completion.");
+        }
+        // -------------------------------------
+
         hud.setMessage ("");
         hud.SecondsToShow = hud.GeneralDuration;
 
@@ -254,5 +274,4 @@ public class InstructionsTask : ExperimentTask {
             manager.scaledPlayer.GetComponent<ThirdPersonCharacter>().immobilized = false;
         }
     }
-
 }

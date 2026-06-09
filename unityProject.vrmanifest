@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.vrroutetask.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\localadmin\\Desktop\\Eric\\vrRouteTask\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "C:\\Users\\localadmin\\Desktop\\vrRouteTask\\vrRouteTask\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "vrRouteTask [Testing]"
