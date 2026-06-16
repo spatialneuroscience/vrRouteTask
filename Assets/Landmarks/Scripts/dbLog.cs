@@ -26,8 +26,21 @@ public class dbLog {
     private StreamWriter logfile;
 
 	public dbLog(string filename) {
-		workingFile = filename;
-		logfile = new StreamWriter ( workingFile );
+        string folderPath = Path.Combine(Application.dataPath, "Logs");
+
+        if (!Directory.Exists(folderPath)) {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        workingFile = Path.Combine(folderPath, filename);
+
+        logfile = new StreamWriter(workingFile);
+
+        Debug.Log("🛠️ dbLog Constructor called. Target path: " + workingFile);
+
+        logfile.AutoFlush = true;
+        
+        Debug.Log("Log file successfully created at: " + workingFile);
 	}
 	
 	public dbLog() {
@@ -36,7 +49,11 @@ public class dbLog {
 	
 	public virtual void close()
 	{
-		logfile.Close();	
+		if (logfile != null) {
+            Debug.Log("🔒 dbLog.close() was explicitly called for: " + workingFile);
+            logfile.Close();    
+            logfile = null;
+        }	
 	}
 	
 	public virtual string[] NextAction() {
@@ -48,19 +65,23 @@ public class dbLog {
 	
 	public virtual void log(string msg, int level) {
 		
-	    long tick = DateTime.Now.Ticks;
-        //long seconds = tick / TimeSpan.TicksPerSecond;
+	    if (logfile == null) {
+            return; 
+        }
+        
+        long tick = DateTime.Now.Ticks;
         long milliseconds = tick / TimeSpan.TicksPerMillisecond;
         microseconds = tick / 10;
-        //Debug.Log(milliseconds);
-        //Debug.Log(Time.frameCount + ": " + Event.current);
         
-		logfile.WriteLine( milliseconds + "\t" + msg );
+        logfile.WriteLine( milliseconds + "\t" + msg );
 	}
 
     // MJS function to cleanly log info with no prefixes
     public virtual void Write(string msg)
     {
+        if (logfile == null) {
+            return;
+        }
         logfile.WriteLine(msg);
     }
 }
