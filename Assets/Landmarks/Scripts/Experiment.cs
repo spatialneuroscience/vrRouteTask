@@ -600,6 +600,9 @@ public class Experiment : MonoBehaviour {
             dblog.log(eeg.LogTriggerIndices(), 1);
         }
 
+        avatarLog aLog = FindObjectOfType<avatarLog>();
+        if (aLog != null) aLog.WritePauseSummary();
+
         // close the logfile
         dblog.close();
 

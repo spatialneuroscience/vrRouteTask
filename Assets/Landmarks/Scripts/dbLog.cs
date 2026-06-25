@@ -23,6 +23,8 @@ public class dbLog {
 
     protected long microseconds = 1;
     protected string workingFile = "";
+
+    public string FilePath { get { return workingFile; } }
     private StreamWriter logfile;
 
 	public dbLog(string filename) {

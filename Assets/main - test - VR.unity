@@ -21849,6 +21849,21 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Target
       objectReference: {fileID: 0}
+    - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: pauseDurationThreshold
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: positionChangeThreshold
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: rotationChangeThreshold
+      value: 360
+      objectReference: {fileID: 0}
     - target: {fileID: 5886711916787819011, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: m_AnchorMax.y
