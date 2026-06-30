@@ -665,7 +665,7 @@ public class Experiment : MonoBehaviour {
                 filename += ".csv";
 
                 StreamWriter sw = new StreamWriter(dataPath + filename);
-                sw.WriteLine(taskHeader);
+                sw.WriteLine(taskHeader.Replace('\t', ','));
 
                 // If using Azure, add these files to the list of files to upload
                 if (azureStorage != null)
@@ -679,7 +679,7 @@ public class Experiment : MonoBehaviour {
                 foreach (Match dataMatch in dataMatches)
                 {
                     GroupCollection dataGroups = dataMatch.Groups;
-                    sw.WriteLine(dataGroups[1].Value);
+                    sw.WriteLine(dataGroups[1].Value.Replace('\t', ','));
                 }
 
                 // clean up (close this file and get ready for next one)
