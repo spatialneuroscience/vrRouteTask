@@ -601,7 +601,10 @@ public class Experiment : MonoBehaviour {
         }
 
         avatarLog aLog = FindObjectOfType<avatarLog>();
-        if (aLog != null) aLog.WritePauseSummary();
+        if (aLog != null) {
+            Debug.Log("aLog name: " + aLog.name);
+            aLog.WritePauseSummary();
+        }
 
         // close the logfile
         dblog.close();

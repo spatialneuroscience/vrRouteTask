@@ -25026,6 +25026,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 223810149508579114, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: pauseDurationThreshold
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 223810149508579114, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: positionChangeThreshold
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 223810149508579114, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: rotationChangeThreshold
+      value: 361
+      objectReference: {fileID: 0}
     - target: {fileID: 254422389178029833, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -25085,6 +25100,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 722609337442248017, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: pauseDurationThreshold
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 722609337442248017, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: positionChangeThreshold
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 722609337442248017, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
+        type: 3}
+      propertyPath: rotationChangeThreshold
+      value: 361
       objectReference: {fileID: 0}
     - target: {fileID: 1423874015918708921, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
@@ -25244,17 +25274,17 @@ PrefabInstance:
     - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: pauseDurationThreshold
-      value: 2
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: positionChangeThreshold
-      value: 1
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
       propertyPath: rotationChangeThreshold
-      value: 360
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 5886711916787819011, guid: 0eaa84beeb5544ef08a8fa759a1176ce,
         type: 3}
@@ -25326,7 +25356,8 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5679918017152846591, guid: 0eaa84beeb5544ef08a8fa759a1176ce, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0eaa84beeb5544ef08a8fa759a1176ce, type: 3}
 --- !u!4 &224568350 stripped
 Transform:
