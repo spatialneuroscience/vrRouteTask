@@ -41,7 +41,10 @@ public enum UserInterface
     ViveVirtualizer,
     ViveKatwalk
 }
-
+public static class GlobalPaths
+{
+    public static string DataPath { get; set; }
+}
 public class Experiment : MonoBehaviour {
 
     public GameObject availableControllers;
@@ -78,6 +81,7 @@ public class Experiment : MonoBehaviour {
     [HideInInspector]
     public string dataPath;
 
+    public GameObject currentTask;
     private bool playback = false;
 	private bool pause = true;
 	private bool done = false;
@@ -95,6 +99,7 @@ public class Experiment : MonoBehaviour {
 	protected HUD hud;
 
     public bool goToEnded;
+    public string timestamp;
 
     // -------------------------------------------------------------------------
     // -------------------------- Builtin Methods ------------------------------
@@ -119,7 +124,7 @@ public class Experiment : MonoBehaviour {
                 oldInstance.SetActive(false);
             }
         }
-
+        Application.logMessageReceived += HandleLog;
         //since config is a singleton it will be the one created in scene 0 or this scene
         config = Config.instance;
 
@@ -600,11 +605,9 @@ public class Experiment : MonoBehaviour {
             dblog.log(eeg.LogTriggerIndices(), 1);
         }
 
-        avatarLog aLog = FindObjectOfType<avatarLog>();
-        if (aLog != null) {
-            Debug.Log("aLog name: " + aLog.name);
-            aLog.WritePauseSummary();
-        }
+        // Write pause summary before closing the log
+        var avatarLogger = FindObjectOfType<avatarLog>();
+        if (avatarLogger != null) avatarLogger.WritePauseSummary();
 
         // close the logfile
         dblog.close();
@@ -668,7 +671,7 @@ public class Experiment : MonoBehaviour {
                 filename += ".csv";
 
                 StreamWriter sw = new StreamWriter(dataPath + filename);
-                sw.WriteLine(taskHeader.Replace('\t', ','));
+                sw.WriteLine(taskHeader);
 
                 // If using Azure, add these files to the list of files to upload
                 if (azureStorage != null)
@@ -682,7 +685,7 @@ public class Experiment : MonoBehaviour {
                 foreach (Match dataMatch in dataMatches)
                 {
                     GroupCollection dataGroups = dataMatch.Groups;
-                    sw.WriteLine(dataGroups[1].Value.Replace('\t', ','));
+                    sw.WriteLine(dataGroups[1].Value);
                 }
 
                 // clean up (close this file and get ready for next one)
@@ -740,11 +743,18 @@ public class Experiment : MonoBehaviour {
         }
     }
 
-
+    void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        if (type == LogType.Warning && logString.Contains("There are 2 audio listeners in the scene"))
+        {
+            return; // swallow this specific warning
+        }
+    }
     void OnApplicationQuit()
     {
-
-        Cursor.visible = true;
+        var avatarLogger = FindObjectOfType<avatarLog>();
+        if (avatarLogger != null) avatarLogger.WritePauseSummary();
+        dblog.close();
     }
 
 }

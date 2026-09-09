@@ -14,9 +14,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Reflection;
+using Landmarks.Scripts;
+using Landmarks.Scripts.Progress;
 using UnityEngine.UI;
 using Valve.VR;
 using UnityEditor;
@@ -42,6 +45,7 @@ public class ExperimentTask : MonoBehaviour{
     protected ArrayList trialData;
 
 	public bool skip = false;
+	public bool skipIfResume = false;
 	public bool canIncrementLists = true;
 
 	public int interval = 0;
@@ -64,12 +68,16 @@ public class ExperimentTask : MonoBehaviour{
     public static bool killCurrent = false;
     protected static bool isScaled = false; // allows scaled nav task components to inherit this bool - MJS 2019
     protected static bool jitterGuardOn = false; // prevent raycast jitter when using a moving HUD such as in the map task
+	public LM_TaskLog taskLog; // The logging destination assigned to this object
 
     [Header("EEG Settings (if available)")]
     public string triggerLabel; // name prefix for unique triggers
     public bool triggerOnStart; // mark a unique trigger at TASK_START
     public bool triggerOnEnd; // mark a unique trigger at TASK_END
     private BrainAmpManager eegManager;
+
+	public XmlNode taskNodeLoaded; // The XML node assigned to this object
+    public XmlNode taskNodeToBeWritten; // The XML node assigned to this object
 
 
     public void Awake ()
@@ -83,30 +91,31 @@ public class ExperimentTask : MonoBehaviour{
 	}
 
 	public virtual void startTask() {
-		avatar = GameObject.FindWithTag ("Player");
+		if (trialLog == null) trialLog = new LM_TrialLog();
+		Debug.Log("Finding Player...");
+		avatar = GameObject.FindWithTag("Player");
+		Debug.Log("Player found: " + (avatar == null ? "NULL" : avatar.name));
+		
 		avatarLog = avatar.GetComponentInChildren<avatarLog>() as avatarLog; //jdstokes 2015
-		if (!avatarLog) Debug.LogError("No Avatar Log found");
 		hud = avatar.GetComponent<HUD>();
-		if (!hud)
-		{
-			Debug.LogError("No Hud found");
-		}
-		experiment = GameObject.FindWithTag ("Experiment");
-		manager = experiment.GetComponent("Experiment") as Experiment;
+
+		Debug.Log("Finding Experiment...");
+		experiment = GameObject.FindWithTag("Experiment");
+		Debug.Log("Experiment found: " + (experiment == null ? "NULL" : experiment.name));
+
+		manager = experiment.GetComponent<Experiment>();
 		firstPersonCamera = manager.playerCamera;
 		overheadCamera = manager.overheadCamera;
         log = manager.dblog;
+		// TL Comments: Here, it's the same thing as in AvatarController.cs. We're accessing a 'reference' to dbLog, where the reference exists inside manager (i.e., experiment.cs)
         vrEnabled = manager.usingVR;
-        trialLog = manager.trialLogger;
-
-
 
         // set up vrInput if we're using VR
         if (vrEnabled) vrInput = SteamVR_Input.GetActionSet<SteamVR_Input_ActionSet_landmarks>(default);
 
         // Grab the scaled nav task/player and log it - MJS 2019
         scaledAvatar = manager.scaledPlayer;
-        scaledAvatarLog = scaledAvatar.GetComponent("avatarLog") as avatarLog;
+        scaledAvatarLog = scaledAvatar.GetComponent<avatarLog>();
 
         //debugButton = hud.debugButton.GetComponent<Button>();
         actionButton = hud.actionButton.GetComponent<Button>();
@@ -139,6 +148,7 @@ public class ExperimentTask : MonoBehaviour{
         }
 
         Debug.Log("Starting " + this.name);
+		LM_Progress.Instance.RecordTaskStart(this);
     }
 
 	public virtual void TASK_START () {
@@ -146,11 +156,9 @@ public class ExperimentTask : MonoBehaviour{
 
 	public virtual bool updateTask () {
 
-		bool attemptInterupt = false;
+		if (skip) return true;
 
-		if ( interruptInterval > 0 && Experiment.Now() - task_start >= interruptInterval)  {
-	        attemptInterupt = true;
-	    }
+		bool attemptInterupt = interruptInterval > 0 && Experiment.Now() - task_start >= interruptInterval;
 
 		if( Input.GetButtonDown ("Compass") ) {
 			attemptInterupt = true;
@@ -164,7 +172,7 @@ public class ExperimentTask : MonoBehaviour{
 			else
 			{
 				Debug.Log(currentInterrupt);
-	    		Debug.Log(repeatInterrupts);
+				Debug.Log(repeatInterrupts);
 
 				log.log("INPUT_EVENT	interrupt	" + name,1 );
 				//interruptTasks.pausedTasks = this;
@@ -201,9 +209,16 @@ public class ExperimentTask : MonoBehaviour{
         }
 
         long duration = Experiment.Now() - task_start;
-		currentInterrupt = 0;    //put here because of interrupts
-		log.log("TASK_END\t" + name + "\t" + this.GetType().Name + "\t" + duration,1 );
-        hud.showNothing();
+		currentInterrupt = 0;
+
+		Debug.Log("Checking log..."); 
+		log.log("TASK_END\t" + name + "\t" + this.GetType().Name + "\t" + duration, 1);
+
+		Debug.Log("Checking hud...");
+		hud.showNothing();
+
+		Debug.Log("Checking LM_Progress...");
+		LM_Progress.Instance.RecordTaskEnd(this);
 
 	}
 
@@ -324,7 +339,23 @@ public class ExperimentTask : MonoBehaviour{
         foreach (Transform child in root)
             MoveToLayer(child, layer);
     }
+	
+	// Calculate the planar distance between placement and targets (i.e., ignore the y-axis height of the copies)
+	public float Vector3Distance2D(Vector3 v1, Vector3 v2)
+	{
+		return (Mathf.Sqrt(Mathf.Pow(Mathf.Abs(v1.x - v2.x), 2f) + Mathf.Pow(Mathf.Abs(v1.z - v2.z), 2f)));
+	}
 
+	public float Vector3Angle2D(Vector3 v1, Vector3 v2)
+	{
+		return Vector2.SignedAngle(new Vector2(v1.x, v1.z), new Vector2(v2.x, v2.z));
+	}
+
+
+	public float UnsignedVector3Angle2D(Vector3 v1, Vector3 v2)
+	{
+		return Vector2.Angle(new Vector2(v1.x, v1.z), new Vector2(v2.x, v2.z));
+	}
 
 	// Calculate the planar distance between placement and targets (i.e., ignore the y-axis height of the copies)
 	public float GetVector2DDistance(Vector3 v1, Vector3 v2)

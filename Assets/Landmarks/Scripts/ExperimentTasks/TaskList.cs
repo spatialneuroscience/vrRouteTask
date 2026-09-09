@@ -20,10 +20,16 @@ using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
 
+public enum Role
+{
+    standard, // just run the ExperimentTasks nested here
+    task, // implement additional configuration for a parent-task loop (e.g., Assets/Landmarks/Prefabs/TASK_NavigationTask.prefab)
+    trial // impleent additional features needed for a single trial that repeats (e.g., the 'NavigationTrials' gameobject in the TASK_NavigationTask prefab)
+}
 
 public class TaskList : ExperimentTask
 {
-    [Header("Task-specific Properties")]
+    [Header("Task-specific Properties")] public Role taskListType = Role.standard;
 
     public string[] skipConditions;
     public GameObject[] tasks; // no longer need to preset, shown for debugging and visualization - MJS
@@ -58,7 +64,7 @@ public class TaskList : ExperimentTask
 
         TASK_START();
 
-
+        Debug.Log($"TaskList '{name}': startTask finished TASK_START, skip={skip}");
         if (!skip) startNextTask();
     }
 
@@ -155,12 +161,18 @@ public class TaskList : ExperimentTask
 
         if (trialLogging)
         {
-            trialLog.Reset();
-            trialLog.active = true;
-            NewTrialLog();
+            if (trialLog != null)
+            {
+                trialLog.Reset();
+                trialLog.active = true;
+                NewTrialLog();
+            }
 
         }
-        else trialLog.active = false;
+        else if (trialLog != null)
+        {
+            trialLog.active = false;
+        }
 
         // Hide the targets for the duration of this tasklist
         if (hideTargetsDuringTask)
@@ -173,12 +185,25 @@ public class TaskList : ExperimentTask
 
     public void startNextTask()
     {
-        Debug.Log("Starting " + tasks[currentTaskIndex].name);
+        Debug.Log($"TaskList '{name}': startNextTask called at index {currentTaskIndex}");
+
+        if (tasks[currentTaskIndex] == null)
+        {
+            Debug.LogError($"TaskList '{name}': tasks[{currentTaskIndex}] is null in the array");
+            return;
+        }
+
+        Debug.Log($"TaskList '{name}': tasks[{currentTaskIndex}] is '{tasks[currentTaskIndex].name}'");
 
         currentTask = tasks[currentTaskIndex].GetComponent<ExperimentTask>();
 
-        currentTask.parentTask = this;
+        if (currentTask == null)
+        {
+            Debug.LogError($"TaskList '{name}': GetComponent<ExperimentTask>() returned null for '{tasks[currentTaskIndex].name}'. This object has no ExperimentTask component.");
+            return;
+        }
 
+        currentTask.parentTask = this;
         currentTask.startTask();
     }
 
@@ -186,6 +211,17 @@ public class TaskList : ExperimentTask
     public override bool updateTask()
     {
         if (skip) return true;
+
+
+        if (currentTask == null)
+        {
+            Debug.LogError($"TaskList '{name}': currentTask is null. " +
+                        $"currentTaskIndex={currentTaskIndex}, " +
+                        $"tasks length={(tasks != null ? tasks.Length.ToString() : "NULL")}, " +
+                        $"repeatCount={repeatCount}, " +
+                        $"skip={skip}");
+            return true; // bail out gracefully rather than crashing
+        }
 
         if (currentTask.updateTask())
         {
@@ -219,8 +255,8 @@ public class TaskList : ExperimentTask
         // If we've finished all the tasks in all the cycles (repeats), end this tasklist
         if (currentTaskIndex >= tasks.Length && repeatCount >= repeat)
         {
-            if (trialLogging) log.Write(trialLog.FormatCurrent()); // output the formatted data to the log file
-            if (trialLogging) trialLog.Reset(); // clear out any values that aren't protected as defaults
+            if (trialLogging && trialLog != null) log.Write(trialLog.FormatCurrent());
+            if (trialLogging && trialLog != null) trialLog.Reset();
 
 
             // Clean up at the end in case this object is repeated in a nest
@@ -329,7 +365,7 @@ public class TaskList : ExperimentTask
             overideRepeat.incrementCurrent();
         }
 
-        trialLog.Reset(); // Run the constructor to ensure the log gets cleared completely
+        if (trialLog != null) trialLog.Reset(); // Run the constructor to ensure the log gets cleared completely
 
         //	if (pausedTasks) {
         //currentTask = pausedTasks;

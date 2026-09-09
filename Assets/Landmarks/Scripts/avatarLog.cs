@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 public class avatarLog : MonoBehaviour {
 
@@ -16,24 +15,19 @@ public class avatarLog : MonoBehaviour {
     public GameObject player;
     public GameObject camerarig;
 
-    // ── Pause Detection Thresholds ────────────────────────────────────────────
-    public float pauseDurationThreshold  = 2f;
-    public float positionChangeThreshold = 1f; // Bounding radius
+    // ── Pause Detection Thresholds (tweak in Inspector or here) ──────────────
+    public float pauseDurationThreshold  = 0.5f;   // seconds stationary to count as a pause
+    public float positionChangeThreshold = 0.01f;  // units of movement considered "not moving"
+    public float rotationChangeThreshold = 0.1f;   // degrees of rotation considered "not moving"
     // ─────────────────────────────────────────────────────────────────────────
 
-    private struct PositionDataPoint {
-        public Vector3 position;
-        public float timestamp;
-    }
-    private List<PositionDataPoint> positionHistory = new List<PositionDataPoint>();
-    
-    // New list to keep track of each individual pause's duration
-    private List<float> individualPauseDurations = new List<float>();
-
-    private int     pauseCount     = 0;
-    private float   totalPauseTime = 0f;
-    private bool    summaryWritten = false;
-    private string logFilePath = "";
+    // Pause tracking state (private, no need to touch these)
+    private Vector3 lastPosition;
+    private Vector3 lastRotation;
+    private float   pauseStartTime  = -1f;
+    private bool    inPause         = false;
+    private int     pauseCount      = 0;
+    private float   totalPauseTime  = 0f;
 
     void Start () {
         Debug.Log("Project Root Folder: " + System.IO.Directory.GetCurrentDirectory());
@@ -45,99 +39,153 @@ public class avatarLog : MonoBehaviour {
         log        = manager.dblog;
         avatar     = transform;
 
-        if (log != null) {
-            logFilePath = log.FilePath;
-            Debug.Log("avatarLog: Log file path cached at: " + logFilePath);
-        }
-        
-        // Pre-allocate memory for ~15 minutes of data at 50fps to eliminate runtime resizing
-        positionHistory = new List<PositionDataPoint>(45000);
+        // Seed last-known position/rotation so first frame has a valid comparison
+        lastPosition = cameraCon.position;
+        lastRotation = cameraCon.eulerAngles;
+
+        LoadPauseTotals();
     }
 
     void FixedUpdate () {
+
+        // ── Position & Rotation Logging (unchanged from original) ────────────
+        log.log("Avatar: \t" + avatar.name + "\t" +
+                "Position (xyz): \t" + cameraCon.position.x    + "\t" + cameraCon.position.y    + "\t" + cameraCon.position.z    + "\t" +
+                "Rotation (xyz): \t" + cameraCon.eulerAngles.x  + "\t" + cameraCon.eulerAngles.y  + "\t" + cameraCon.eulerAngles.z  + "\t" +
+                "Camera   (xyz): \t" + cameraRig.eulerAngles.x  + "\t" + cameraRig.eulerAngles.y  + "\t" + cameraRig.eulerAngles.z  + "\t"
+                , 1);
         log.log("Avatar: \t" + avatar.name + "\t" +
                 "Position (xyz): \t" + cameraCon.position.x    + "\t" + cameraCon.position.y    + "\t" + cameraCon.position.z    + "\t" +
                 "Rotation (xyz): \t" + cameraCon.eulerAngles.x  + "\t" + cameraCon.eulerAngles.y  + "\t" + cameraCon.eulerAngles.z  + "\t" +
                 "Camera   (xyz): \t" + cameraRig.eulerAngles.x  + "\t" + cameraRig.eulerAngles.y  + "\t" + cameraRig.eulerAngles.z  + "\t"
                 , 1);
 
-        PositionDataPoint currentPoint;
-        currentPoint.position = cameraCon.position;
-        currentPoint.timestamp = Time.fixedTime;
-        positionHistory.Add(currentPoint);
+        // ── Pause Detection ──────────────────────────────────────────────────
+
+        // Position delta — straight Euclidean distance from last frame
+        float posDelta = Vector3.Distance(cameraCon.position, lastPosition);
+
+        // Rotation delta — Mathf.DeltaAngle handles the 0/360 wraparound cleanly
+        float rotDelta = Mathf.Abs(Mathf.DeltaAngle(lastRotation.x, cameraCon.eulerAngles.x))
+                       + Mathf.Abs(Mathf.DeltaAngle(lastRotation.y, cameraCon.eulerAngles.y))
+                       + Mathf.Abs(Mathf.DeltaAngle(lastRotation.z, cameraCon.eulerAngles.z));
+
+        bool isMoving = posDelta > positionChangeThreshold || rotDelta > rotationChangeThreshold;
+
+        if (!isMoving) {
+            // Not moving — start timing a pause if we haven't already
+            if (!inPause) {
+                pauseStartTime = Time.fixedTime;
+                inPause = true;
+            }
+        } else {
+            // Moving — close out any pause that was in progress
+            if (inPause) {
+                float duration = Time.fixedTime - pauseStartTime;
+                if (duration >= pauseDurationThreshold) {
+                    pauseCount++;
+                    totalPauseTime += duration;
+                }
+                inPause = false;
+            }
+        }
+
+        // Always update last-known values for next frame comparison
+        lastPosition = cameraCon.position;
+        lastRotation = cameraCon.eulerAngles;
     }
 
-    public void WritePauseSummary() {
-        if (summaryWritten) return;
-        summaryWritten = true;
+    void OnApplicationQuit() {
 
-        CalculatePausesRetroactively();
+        // Close out any pause still in progress at quit time
+        if (inPause) {
+            float duration = Time.fixedTime - pauseStartTime;
+            if (duration >= pauseDurationThreshold) {
+                pauseCount++;
+                totalPauseTime += duration;
+            }
+        }
+
+        // ── Append Pause Summary to Log ──────────────────────────────────────
+        if (log != null) {
+            float avgPause = pauseCount > 0 ? totalPauseTime / pauseCount : 0f;
+
+            log.log("", 1);
+            log.log("============================================================", 1);
+            log.log("PAUSE ANALYSIS RESULTS", 1);
+            log.log("============================================================", 1);
+            log.log("Pause Count          : " + pauseCount, 1);
+            log.log("Total Pause Time     : " + totalPauseTime.ToString("F2") + " s", 1);
+            log.log("Avg Pause Duration   : " + avgPause.ToString("F2") + " s", 1);
+            log.log("Thresholds Used      : duration >= " + pauseDurationThreshold + "s" +
+                    "  |  pos <= " + positionChangeThreshold +
+                    "  |  rot <= " + rotationChangeThreshold + " deg", 1);
+            log.log("============================================================", 1);
+
+            log.close();
+            Debug.Log("Log file closed safely. Pauses detected: " + pauseCount);
+        }
+    }
+    public void WritePauseSummary()
+    {
+        if (inPause)
+        {
+            float duration = Time.fixedTime - pauseStartTime;
+            if (duration >= pauseDurationThreshold)
+            {
+                pauseCount++;
+                totalPauseTime += duration;
+            }
+            inPause = false;
+        }
+
+        if (log == null) return;
 
         float avgPause = pauseCount > 0 ? totalPauseTime / pauseCount : 0f;
-
         log.log("", 1);
         log.log("============================================================", 1);
-        log.log("RETROACTIVE PAUSE ANALYSIS RESULTS", 1);
+        log.log("PAUSE ANALYSIS RESULTS", 1);
         log.log("============================================================", 1);
         log.log("Pause Count          : " + pauseCount, 1);
         log.log("Total Pause Time     : " + totalPauseTime.ToString("F2") + " s", 1);
         log.log("Avg Pause Duration   : " + avgPause.ToString("F2") + " s", 1);
         log.log("Thresholds Used      : duration >= " + pauseDurationThreshold + "s" +
-                "  |  bounding diameter <= " + positionChangeThreshold + "m", 1);
-        log.log("------------------------------------------------------------", 1);
-        log.log("INDIVIDUAL PAUSE BREAKDOWN:", 1);
-        
-        // Loop through and print each pause dynamically
-        if (individualPauseDurations.Count == 0) {
-            log.log("No valid pauses detected.", 1);
-        } else {
-            for (int p = 0; p < individualPauseDurations.Count; p++) {
-                log.log($"Pause {p + 1}: {individualPauseDurations[p].ToString("F2")} s", 1);
-            }
-        }
-        
+                "  |  pos <= " + positionChangeThreshold +
+                "  |  rot <= " + rotationChangeThreshold + " deg", 1);
         log.log("============================================================", 1);
 
-        Debug.Log("avatarLog: Retroactive pause summary written with individual breakdowns.");
+        SavePauseTotals();
     }
 
-    private void CalculatePausesRetroactively() {
-        if (positionHistory.Count < 2) return;
+    private string GetPauseTotalsPath()
+    {
+        var exp = GameObject.FindWithTag("Experiment").GetComponent<Experiment>();
+        return GlobalPaths.DataPath + "pause_totals.dat";
+    }
 
-        int i = 0;
-        while (i < positionHistory.Count) {
-            float pauseStart = positionHistory[i].timestamp;
-            Vector3 anchorPosition = positionHistory[i].position;
-            
-            int j = i + 1;
-            bool isStillPausing = true;
-            float validPauseEnd = pauseStart;
+    private void LoadPauseTotals()
+    {
+        var path = GetPauseTotalsPath();
+        if (!System.IO.File.Exists(path)) return;
 
-            while (j < positionHistory.Count && isStillPausing) {
-                if (Vector3.Distance(positionHistory[j].position, anchorPosition) <= positionChangeThreshold) {
-                    validPauseEnd = positionHistory[j].timestamp;
-                    j++;
-                } else {
-                    isStillPausing = false;
-                }
-            }
-
-            float finalDuration = validPauseEnd - pauseStart;
-
-            if (finalDuration >= pauseDurationThreshold) {
-                pauseCount++;
-                totalPauseTime += finalDuration;
-                
-                // Track this specific duration to break down in the final summary
-                individualPauseDurations.Add(finalDuration);
-                
-                i = j; 
-            } else {
-                i++;
-            }
+        var lines = System.IO.File.ReadAllLines(path);
+        foreach (var line in lines)
+        {
+            var parts = line.Split('=');
+            if (parts.Length != 2) continue;
+            if (parts[0] == "pauseCount") int.TryParse(parts[1], out pauseCount);
+            if (parts[0] == "totalPauseTime") float.TryParse(parts[1], out totalPauseTime);
         }
+        Debug.Log($"Loaded previous pause totals: count={pauseCount}, total={totalPauseTime}");
     }
 
-    void OnApplicationQuit() { WritePauseSummary(); }
-    void OnDestroy()          { WritePauseSummary(); }
+    private void SavePauseTotals()
+    {
+        var path = GetPauseTotalsPath();
+        System.IO.File.WriteAllLines(path, new[]
+        {
+            $"pauseCount={pauseCount}",
+            $"totalPauseTime={totalPauseTime}"
+        });
+    }
 }

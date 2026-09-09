@@ -100,6 +100,7 @@ public class Config : MonoBehaviour
             return s_Instance;
         }
     }
+    public static Config Instance => instance;
     // Ensure that the instance is destroyed when the game is stopped in the editor.
     void OnApplicationQuit()
     {
@@ -285,6 +286,7 @@ public class Config : MonoBehaviour
     //    File.Delete(path + "progress.dat");
     //}
 }
+
 
 [System.Serializable]
 class ExpData

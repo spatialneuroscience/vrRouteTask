@@ -120,10 +120,15 @@ public class ObjectList : ExperimentTask {
 		}
 	}
 	
-	public  void incrementCurrent() {
-		current++;
-		if (current >= objects.Count && EndListBehavior == EndListMode.Loop) {
-			current = 0;
-		}
-	}
+    public new void incrementCurrent(int increment = 1)
+        //TL TLDR: increments the "current" trial by adding 1
+    {
+        current += increment;
+        //TL: When running this method: current (the trial number?) increments by 1
+        if (current >= objects.Count && EndListBehavior == EndListMode.Loop)
+            //don't need to worry about this if loop, since our end behavior is set to "end" and not "loop"
+        {
+            current = 0;
+        }
+    }
 }

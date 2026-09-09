@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System.Threading.Tasks;
 using TMPro;
 using System.IO;
+using Landmarks.Scripts.Progress;
 
 #if WINDOWS_UWP && ENABLE_DOTNET
 using Windows.Storage;
@@ -38,10 +39,12 @@ public class LM_ExpStartup : MonoBehaviour
     private string appDir;
     private bool existingData;
 
+    public Action ExtraInitCallback { get; set; }
+
     private void Awake()
     {
         appDir = Application.persistentDataPath;
-
+        Application.logMessageReceived += HandleLog;
         if (id != "" | guiElements.subID == null)
         {
             // Set a default ID if need be
@@ -102,8 +105,16 @@ public class LM_ExpStartup : MonoBehaviour
             guiElements.studyCodes.options.Add(option);
         }
 
+        ExtraInitCallback = InitProgress;
     }
 
+    private void InitProgress()
+    {
+        var progress = LM_Progress.Instance;
+        progress.SetSavingFolderPath(LM_Progress.GetSaveFolderWithId($"{id}"));
+        progress.DisableResuming();
+        progress.InitializeSave();
+    }
 
     private void Update()
     {
@@ -145,7 +156,25 @@ public class LM_ExpStartup : MonoBehaviour
             readyConfig();
             Debug.Log("Running readyConfig");
 
-            SceneManager.LoadScene(config.levelNames[config.levelNumber]);
+            ExtraInitCallback?.Invoke();
+
+            // --- DEBUG CHECKS ---
+            Debug.Log($"levelNames count: {config.levelNames.Count}");
+            Debug.Log($"levelNumber: {config.levelNumber}");
+
+            if (config.levelNames == null || config.levelNames.Count == 0)
+            {
+                Debug.LogError("levelNames list is empty or null. Cannot load scene.");
+            }
+            else if (config.levelNumber < 0 || config.levelNumber >= config.levelNames.Count)
+            {
+                Debug.LogError($"levelNumber {config.levelNumber} is out of range. Valid range: 0 to {config.levelNames.Count - 1}");
+            }
+            else
+            {
+                Debug.Log($"Attempting to load scene: {config.levelNames[config.levelNumber]}");
+                SceneManager.LoadScene(config.levelNames[config.levelNumber]);
+            }
 
 
             //SceneManager.LoadScene(config.level);
@@ -160,7 +189,7 @@ public class LM_ExpStartup : MonoBehaviour
     void readyConfig()
     {
         Debug.Log("readying config");
-        config = Config.instance;
+        config = Config.Instance;
 
         config.runMode = ConfigRunMode.NEW;
         config.bootstrapped = true;
@@ -209,7 +238,7 @@ public class LM_ExpStartup : MonoBehaviour
     {
         var text = guiElements.studyCodes.options[guiElements.studyCodes.value].text;
         if (!string.IsNullOrEmpty(text) && text != "[Experiment Config]") return true;
-
+        
         Debug.LogWarning("Study code incorrect");
         return false;
 
@@ -242,7 +271,7 @@ public class LM_ExpStartup : MonoBehaviour
                         _errorMessage.text = "Loading SubjectID data from a previous session.";
                         _errorMessage.gameObject.SetActive(true);
                     }
-
+                    
                     else
                     {
                         subidError = true;
@@ -290,6 +319,19 @@ public class LM_ExpStartup : MonoBehaviour
         }
         catch (System.Exception ex)
         {
+        }
+    }
+
+    void OnDestroy()
+    {
+        Application.logMessageReceived -= HandleLog;
+    }
+
+    void HandleLog(string logString, string stackTrace, LogType type)
+    {
+        if (type == LogType.Warning && logString.Contains("There are 2 audio listeners in the scene. Please ensure there is always exactly one audio listener in the scene."))
+        {
+            return; // swallow this specific warning
         }
     }
 }
@@ -351,7 +393,7 @@ public class GuiElements
 
 //        if (id != 0 | guiElements.subID == null)
 //        {
-//            // Set a default ID if need be
+//            // Set a default ID if need be 
 //            if (guiElements.subID == null)
 //            {
 //                Debug.LogError("No field for providing a subject id manually; automatically generating id starting at 1001");

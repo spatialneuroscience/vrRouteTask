@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Landmarks.Scripts.Progress;
 using UnityEngine;
 using TMPro;
 
@@ -16,39 +18,33 @@ public class NavigationTask : ExperimentTask
 {
     [Header("Task-specific Properties")]
     public ObjectList destinations;
-	private GameObject current;
+    private GameObject current;
 
     public TextAsset NavigationInstruction;
 
-    // Manipulate trial/task termination criteria
     [Tooltip("in meters")]
     public float distanceAllotted = Mathf.Infinity;
     [Tooltip("in seconds")]
     public float timeAllotted = Mathf.Infinity;
 
-    // Use a scoring/points system (not currently configured)
     [HideInInspector] private int score = 0;
     [HideInInspector] public int scoreIncrement = 50;
     [HideInInspector] public int penaltyRate = 2000;
     [HideInInspector] private float penaltyTimer = 0;
     [HideInInspector] public bool showScoring;
 
-    // Handle the rendering of the target objects (default: always show)
     public HideTargetOnStart hideTargetOnStart;
     [Tooltip("negative values denote time before targets are hidden; 0 is always on; set very high for no targets")]
     public float showTargetAfterSeconds;
 
-    // Manipulate the rendering of the non-target environment objects (default: always show)
     public bool hideNonTargets;
 
-    // for compass assist
     public LM_Compass assistCompass;
     [Tooltip("negative values denote time before compass is hidden; 0 is always on; set very high for no compass")]
     public float SecondsUntilAssist = Mathf.Infinity;
-    public Vector3 compassPosOffset; // where is the compass relative to the active player snappoint
-    public Vector3 compassRotOffset; // compass rotation relative to the active player snap point
+    public Vector3 compassPosOffset;
+    public Vector3 compassRotOffset;
 
-    // For logging output
     private float startTime;
     private Vector3 playerLastPosition;
     private float playerDistance = 0;
@@ -56,16 +52,19 @@ public class NavigationTask : ExperimentTask
     private float scaledPlayerDistance = 0;
     private float optimalDistance;
 
-    public override void startTask ()
-	{
-		TASK_START();
-		avatarLog.navLog = true;
+    public override void startTask()
+    {
+        TASK_START();
+        avatarLog.navLog = true;
         if (isScaled) scaledAvatarLog.navLog = true;
     }
 
-	public override void TASK_START()
-	{
-		if (!manager) Start();
+    public override void TASK_START()
+    {
+        WrongWay.SetArmed(true);
+
+        if (!manager) Start();
+
         base.startTask();
 
         if (skip)
@@ -80,57 +79,46 @@ public class NavigationTask : ExperimentTask
                 " free exploration with specified time Alloted or distance alloted" +
                 " (whichever is less)");
 
-            // Make a dummy placeholder for exploration task to avoid throwing errors
             var tmp = new List<GameObject>();
             tmp.Add(gameObject);
             gameObject.AddComponent<ObjectList>();
             gameObject.GetComponent<ObjectList>().objects = tmp;
-           
-  
             destinations = gameObject.GetComponent<ObjectList>();
-
         }
 
         hud.showEverything();
-		hud.showScore = showScoring;
+        hud.showScore = showScoring;
 
         current = destinations.currentObject();
 
-        Debug.Log ("Find " + destinations.currentObject().name);
+        Debug.Log("Find " + destinations.currentObject().name);
 
-     // if it's a target, open the door to show it's active
-      if (current.GetComponentInChildren<LM_TargetStore>() != null)
-       {
+        if (current.GetComponentInChildren<LM_TargetStore>() != null)
+        {
             current.GetComponentInChildren<LM_TargetStore>().OpenDoor();
         }
 
-		if (NavigationInstruction)
-		{
-			string msg = NavigationInstruction.text;
-			if (destinations != null) msg = string.Format(msg, current.name);
-			hud.setMessage(msg);
-   		}
-		else
-		{
+        if (NavigationInstruction)
+        {
+            string msg = NavigationInstruction.text;
+            if (destinations != null) msg = string.Format(msg, current.name);
+            hud.setMessage(msg);
+        }
+        else
+        {
             hud.SecondsToShow = 0;
-            //hud.setMessage("Please find the " + current.name);
-		}
+        }
 
-        // Handle if we're hiding all the non-targets
         if (hideNonTargets)
         {
             foreach (GameObject item in destinations.objects)
             {
                 if (item.name != destinations.currentObject().name)
-                {
                     item.SetActive(false);
-                }
                 else item.SetActive(true);
             }
         }
 
-
-        // Handle if we're hiding the target object
         if (hideTargetOnStart != HideTargetOnStart.Off)
         {
             if (hideTargetOnStart == HideTargetOnStart.SetInactive)
@@ -149,21 +137,16 @@ public class NavigationTask : ExperimentTask
         }
         else
         {
-            destinations.currentObject().SetActive(true); // make sure the target is visible unless the bool to hide was checked
+            destinations.currentObject().SetActive(true);
             try
             {
                 destinations.currentObject().GetComponent<MeshRenderer>().enabled = true;
             }
-            catch (System.Exception ex)
-            {
-
-            }
+            catch (System.Exception ex) { }
         }
 
-        // startTime = Current time in seconds
         startTime = Time.time;
 
-        // Get the avatar start location (distance = 0)
         playerDistance = 0.0f;
         playerLastPosition = avatar.transform.position;
         if (isScaled)
@@ -172,15 +155,11 @@ public class NavigationTask : ExperimentTask
             scaledPlayerLastPosition = scaledAvatar.transform.position;
         }
 
-        // Calculate optimal distance to travel (straight line)
         if (isScaled)
-        {
             optimalDistance = Vector3.Distance(scaledAvatar.transform.position, current.transform.position);
-        }
-        else optimalDistance = Vector3.Distance(avatar.transform.position, current.transform.position);
+        else
+            optimalDistance = Vector3.Distance(avatar.transform.position, current.transform.position);
 
-
-        // Grab our LM_Compass object and move it to the player snapPoint
         if (assistCompass != null)
         {
             assistCompass.transform.parent = avatar.GetComponentInChildren<LM_SnapPoint>().transform;
@@ -189,183 +168,165 @@ public class NavigationTask : ExperimentTask
             assistCompass.gameObject.SetActive(false);
         }
 
-        //// MJS 2019 - Move HUD to top left corner
-        //hud.hudPanel.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1);
-        //hud.hudPanel.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.9f);
+        StartCoroutine(RestoreStatesNextFrame());
     }
 
-    public override bool updateTask ()
-	{
-        //base.updateTask();
+    private IEnumerator RestoreStatesNextFrame()
+    {
+        LM_Progress.SetRestoring(true);
+        yield return new WaitForEndOfFrame();
 
-        //if (skip)
-        //{
-        //    //log.log("INFO    skip task    " + name,1 );
-        //    return true;
-        //}
+        if (LM_Progress.Instance.lastSaveStack == null || LM_Progress.Instance.lastSaveStack.Count == 0)
+        {
+            LM_Progress.SetRestoring(false);
+            yield break;
+        }
 
-        //if (score > 0) penaltyTimer = penaltyTimer + (Time.deltaTime * 1000);
+        var allEvents = LM_Progress.Instance.GetTriggeredColliders()
+            .Where(id => id.StartsWith("WW|") || id.StartsWith("MW|"))
+            .OrderBy(id =>
+            {
+                var parts = id.Split('|');
+                return long.TryParse(parts[parts.Length - 1], out var t) ? t : 0;
+            })
+            .ToList();
 
+        if (allEvents.Count == 0)
+        {
+            LM_Progress.SetRestoring(false);
+            yield break;
+        }
 
-        //if (penaltyTimer >= penaltyRate)
-        //{
-        //    penaltyTimer = penaltyTimer - penaltyRate;
-        //    if (score > 0)
-        //    {
-        //        score = score - 1;
-        //        hud.setScore(score);
-        //    }
-        //}
+        foreach (var evt in allEvents)
+        {
+            var parts = evt.Split('|');
+            if (parts[0] == "WW" && parts.Length >= 3)
+            {
+                var go = FindByPath(parts[1]);
+                if (go != null) go.SetActive(parts[2] == "1");
+            }
+            else if (parts[0] == "MW" && parts.Length >= 2)
+            {
+                var go = FindByPath(parts[1]);
+                if (go != null)
+                {
+                    var allMW = go.GetComponents<MoveWalls>();
+                    MoveWalls mw = null;
 
-        ////VR capability with showing target
-        //if (vrEnabled)
-        //{
-        //    if (hideTargetOnStart != HideTargetOnStart.Off && hideTargetOnStart != HideTargetOnStart.SetProbeTrial && ((Time.time - startTime > (showTargetAfterSeconds) || vrInput.TouchpadButton.GetStateDown(Valve.VR.SteamVR_Input_Sources.Any))))
-        //    {
-        //        destinations.currentObject().SetActive(true);
-        //    }
+                    if (parts.Length >= 5)
+                    {
+                        // New format: MW|path|localWallsName|replacementWallsName|ticks
+                        string localName = parts[2];
+                        string replaceName = parts[3];
+                        mw = allMW.FirstOrDefault(m =>
+                            (m.localWalls ? m.localWalls.name : "null") == localName &&
+                            (m.replacementWalls ? m.replacementWalls.name : "null") == replaceName);
+                    }
 
-        //    if (hideTargetOnStart == HideTargetOnStart.SetProbeTrial && vrInput.TouchpadButton.GetStateDown(Valve.VR.SteamVR_Input_Sources.Any))
-        //    {
-        //        //get current location and then log it
+                    if (mw == null) mw = allMW.FirstOrDefault(); // fallback for old saves
+                    if (mw != null) mw.ApplyWallSwapImmediate();
+                }
+            }
+        }
 
-        //        destinations.currentObject().SetActive(true);
-        //        destinations.currentObject().GetComponent<MeshRenderer>().enabled = true;
-        //    }
-        //}
+        yield return new WaitForEndOfFrame();
+        LM_Progress.SetRestoring(false);
+    }
 
-        ////show target on button click or after set time
-        //if (hideTargetOnStart != HideTargetOnStart.Off && hideTargetOnStart != HideTargetOnStart.SetProbeTrial && ((Time.time - startTime > (showTargetAfterSeconds) || Input.GetButtonDown("Return"))))
-        //{
-        //    destinations.currentObject().SetActive(true);
-        //}
+    private GameObject FindByPath(string path)
+    {
+        var parts = path.Split('/');
+        GameObject current = null;
 
-        //if (hideTargetOnStart == HideTargetOnStart.SetProbeTrial && Input.GetButtonDown("Return"))
-        //{
-        //    //get current location and then log it
+        for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
+            var root = scene.GetRootGameObjects().FirstOrDefault(r => r.name == parts[0]);
+            if (root != null) { current = root; break; }
+        }
 
-        //    destinations.currentObject().SetActive(true);
-        //    destinations.currentObject().GetComponent<MeshRenderer>().enabled = true;
-        //}
+        if (current == null)
+        {
+            current = Resources.FindObjectsOfTypeAll<GameObject>()
+                .FirstOrDefault(g => g.name == parts[0] && g.transform.parent == null);
+        }
 
-        //// Keep updating the distance traveled and kill task if they reach max
-        //playerDistance += Vector3.Distance(avatar.transform.position, playerLastPosition);
-        //playerLastPosition = avatar.transform.position;
+        if (current == null) return null;
 
-        //if (isScaled)
-        //{
-        //    scaledPlayerDistance += Vector3.Distance(scaledAvatar.transform.position, scaledPlayerLastPosition);
-        //    scaledPlayerLastPosition = scaledAvatar.transform.position;
-        //}
+        for (int i = 1; i < parts.Length; i++)
+        {
+            var child = current.transform.Find(parts[i]);
+            if (child == null) return null;
+            current = child.gameObject;
+        }
+        return current;
+    }
 
-        //// handle the compass objects render (visible or not)
-        //if (assistCompass != null)
-        //{
-        //    // Keep the assist compass pointing at the target (even if it isn't visible)
-        //    var targetDirection = 2 * assistCompass.transform.position - destinations.currentObject().transform.position;
-        //    targetDirection = new Vector3(targetDirection.x, assistCompass.pointer.transform.position.y, targetDirection.z);
-        //    assistCompass.pointer.transform.LookAt(targetDirection, Vector3.up);
-        //    // Show assist compass if and when it is needed
-        //    if (assistCompass.gameObject.activeSelf == false & SecondsUntilAssist >= 0 & (Time.time - startTime > SecondsUntilAssist))
-        //    {
-        //        assistCompass.gameObject.SetActive(true);
-        //    }
-        //}
-
-        //// End the trial if they reach the max distance allotted
-        //if (!isScaled & playerDistance >= distanceAllotted) return true;
-        //else if (isScaled & scaledPlayerDistance >= distanceAllotted) return true;
-
-        //// End the trial if they reach the max time allotted
-        //if (Time.time - startTime >= timeAllotted)
-        //{
-        //    return true;
-        //}
-
-
-        //if (killCurrent == true)
-        //{
-        //    return KillCurrent();
-        //}
-
+    public override bool updateTask()
+    {
         return false;
-	}
+    }
 
-	public override void endTask()
-	{
-		TASK_END();
-		//avatarController.handleInput = false;
-	}
+    public override void endTask()
+    {
+        TASK_END();
+    }
 
-	public override void TASK_PAUSE()
-	{
-		avatarLog.navLog = false;
+    public override void TASK_PAUSE()
+    {
+        avatarLog.navLog = false;
         if (isScaled) scaledAvatarLog.navLog = false;
-		//base.endTask();
-		log.log("TASK_PAUSE\t" + name + "\t" + this.GetType().Name + "\t" ,1 );
-		//avatarController.stop();
+        log.log("TASK_PAUSE\t" + name + "\t" + this.GetType().Name + "\t", 1);
+        hud.setMessage("");
+        hud.showScore = false;
+    }
 
-		hud.setMessage("");
-		hud.showScore = false;
-
-	}
-
-	public override void TASK_END()
-	{
-		base.endTask();
+    public override void TASK_END()
+    {
+        WrongWay.SetArmed(false);
+        base.endTask();
 
         var navTime = Time.time - startTime;
 
-        //avatarController.stop();
         avatarLog.navLog = false;
         if (isScaled) scaledAvatarLog.navLog = false;
 
-        // close the door if the target was a store and it is open
-        // if it's a target, open the door to show it's active
         if (current.GetComponentInChildren<LM_TargetStore>() != null)
         {
             current.GetComponentInChildren<LM_TargetStore>().CloseDoor();
         }
 
         if (canIncrementLists)
-		{
-			destinations.incrementCurrent();
-		}
+        {
+            destinations.incrementCurrent();
+        }
 
         current = destinations.currentObject();
 
         hud.setMessage("");
-		hud.showScore = false;
-
+        hud.showScore = false;
         hud.SecondsToShow = hud.GeneralDuration;
 
         if (assistCompass != null)
         {
-            // Hide the assist compass
             assistCompass.gameObject.SetActive(false);
         }
-        
-        // Move hud back to center and reset
+
         hud.hudPanel.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
         hud.hudPanel.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
 
         float perfDistance;
         if (isScaled)
-        {
             perfDistance = scaledPlayerDistance;
-        }
-        else perfDistance = playerDistance;
-
+        else
+            perfDistance = playerDistance;
 
         var parent = this.parentTask;
         var masterTask = parent;
         while (!masterTask.gameObject.CompareTag("Task")) masterTask = masterTask.parentTask;
-        // This will log all final trial info in tab delimited format
+
         var excessPath = perfDistance - optimalDistance;
 
-        
-
-        // set impossible values if the nav task was skipped
         if (skip)
         {
             navTime = float.NaN;
@@ -373,16 +334,14 @@ public class NavigationTask : ExperimentTask
             optimalDistance = float.NaN;
             excessPath = float.NaN;
         }
-        
 
         log.log("LM_OUTPUT\tNavigationTask.cs\t" + masterTask + "\t" + this.name + "\n" +
-        	"Task\tBlock\tTrial\tTargetName\tOptimalPath\tActualPath\tExcessPath\tRouteDuration\n" +
-        	masterTask.name + "\t" + masterTask.repeatCount + "\t" + parent.repeatCount + "\t" + destinations.currentObject().name + "\t" + optimalDistance + "\t"+ perfDistance + "\t" + excessPath + "\t" + navTime
-            , 1);
+            "Task\tBlock\tTrial\tTargetName\tOptimalPath\tActualPath\tExcessPath\tRouteDuration\n" +
+            masterTask.name + "\t" + masterTask.repeatCount + "\t" + parent.repeatCount + "\t" +
+            destinations.currentObject().name + "\t" + optimalDistance + "\t" + perfDistance + "\t" +
+            excessPath + "\t" + navTime, 1);
 
-
-        // More concise LM_TrialLog logging
-        if (trialLog.active)
+        if (trialLog != null && trialLog.active)
         {
             trialLog.AddData(transform.name + "_target", destinations.currentObject().name);
             trialLog.AddData(transform.name + "_actualPath", perfDistance.ToString());
@@ -391,32 +350,30 @@ public class NavigationTask : ExperimentTask
             trialLog.AddData(transform.name + "_duration", navTime.ToString());
         }
 
-        // If we created a dummy Objectlist for exploration, destroy it
         Destroy(GetComponent<ObjectList>());
     }
 
-	public override bool OnControllerColliderHit(GameObject hit)
-	{
-		if (hit == current)
-		{
-			if (showScoring)
-			{
-				score = score + scoreIncrement;
-				hud.setScore(score);
-			}
-			return true;
-		}
+    public override bool OnControllerColliderHit(GameObject hit)
+    {
+        if (hit == current)
+        {
+            if (showScoring)
+            {
+                score = score + scoreIncrement;
+                hud.setScore(score);
+            }
+            return true;
+        }
 
-		//		Debug.Log (hit.transform.parent.name + " = " + current.name);
-		if (hit.transform.parent == current.transform)
-		{
-			if (showScoring)
-			{
-				score = score + scoreIncrement;
-				hud.setScore(score);
-			}
-			return true;
-		}
-		return false;
-	}
+        if (hit.transform.parent == current.transform)
+        {
+            if (showScoring)
+            {
+                score = score + scoreIncrement;
+                hud.setScore(score);
+            }
+            return true;
+        }
+        return false;
+    }
 }
