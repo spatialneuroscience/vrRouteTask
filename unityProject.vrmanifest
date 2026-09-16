@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.vrroutetask.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\localadmin\\Desktop\\Midlife Study\\Midlife Study Unity Editor Projects\\RouteLearning\\vrRouteTask-Gavin\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "C:\\Users\\localadmin\\Desktop\\MenoMaps\\Project Folders\\vrRouteTask Project Folder\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "vrRouteTask [Testing]"

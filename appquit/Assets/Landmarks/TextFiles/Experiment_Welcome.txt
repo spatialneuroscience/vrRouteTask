@@ -1,0 +1,8 @@
+Welcome!
+
+The name of this task is "VR Route Testing".
+
+The goal of this task is to find the destination point based on what you previously learned in the VR Route Learning task.
+Please let the experimenter know if you have any questions.
+
+Press "Continue".

@@ -1,0 +1,4 @@
+Welcome! You will shortly be placed into a virtual maze.
+The goal of this task is to learn a route in the maze, by following the red arrows on the floor, that leads you to find the exit.
+You will be tested on your knowledge of this route later. Please let the experimenter know if you have any questions.
+To begin, press the blue "Continue" button with the trackpad, and walk towards a set of footprints on the floor.
